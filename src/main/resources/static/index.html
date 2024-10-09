@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weapon Inventory</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            margin: 20px;
+        }
+        h1, h2 {
+            color: #ffffff;
+        }
+        .container {
+            display: flex;
+            justify-content: space-between;
+        }
+        .form-container {
+            width: 30%;
+            background-color: #1e1e1e;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+            margin-bottom: 20px;
+        }
+        input, button {
+            margin-bottom: 10px;
+            padding: 8px;
+            border: 1px solid #444;
+            border-radius: 4px;
+            width: 100%;
+            background-color: #333;
+            color: #e0e0e0;
+        }
+        button {
+            padding: 10px 15px;
+            border: none;
+            background-color: #28a745;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        ul li {
+            background-color: #2c2c2c;
+            margin-bottom: 10px;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #444;
+            color: #e0e0e0;
+            font-size: 18px;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        #weapon-list {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #1e1e1e;
+            border-radius: 5px;
+            border: 1px solid #444;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+        }
+        #message-box {
+            font-size: 16px;
+            margin-bottom: 20px;
+            padding: 10px;
+        }
+        #refresh-button {
+            margin-bottom: 20px;
+            background-color: #007bff;
+        }
+        #refresh-button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Weapon Inventory</h1>
+<div id="message-box"></div> <!-- Message Box -->
+
+<!-- Inventory List -->
+<ul id="weapon-list"></ul>
+
+<!-- Forms for Each Request Type -->
+<div class="container">
+    <!-- Add Weapon (POST) -->
+    <div class="form-container">
+        <h2>Add Weapon (POST)</h2>
+        <form id="add-weapon-form">
+            <input type="text" id="name" placeholder="Weapon Name" required>
+            <input type="text" id="type" placeholder="Weapon Type" required>
+            <input type="number" id="damage" placeholder="Damage" required>
+            <input type="text" id="range" placeholder="Range" required>
+            <button type="submit">Add Weapon</button>
+        </form>
+    </div>
+
+    <!-- Full Update (PUT) -->
+    <div class="form-container">
+        <h2>Update Weapon (PUT)</h2>
+        <form id="update-weapon-form">
+            <input type="number" id="update-id" placeholder="Weapon ID" required>
+            <input type="text" id="update-name" placeholder="New Weapon Name" required>
+            <input type="text" id="update-type" placeholder="New Weapon Type" required>
+            <input type="number" id="update-damage" placeholder="New Damage" required>
+            <input type="text" id="update-range" placeholder="New Range" required>
+            <button type="submit">Update Weapon</button>
+        </form>
+    </div>
+
+    <!-- Partial Update (PATCH) -->
+    <div class="form-container">
+        <h2>Partial Update Weapon (PATCH)</h2>
+        <form id="patch-weapon-form">
+            <input type="number" id="patch-id" placeholder="Weapon ID" required>
+            <input type="text" id="patch-name" placeholder="New Weapon Name">
+            <input type="text" id="patch-type" placeholder="New Weapon Type">
+            <input type="number" id="patch-damage" placeholder="New Damage">
+            <input type="text" id="patch-range" placeholder="New Range">
+            <button type="submit">Patch Weapon</button>
+        </form>
+    </div>
+
+    <!-- Delete Weapon (DELETE) -->
+    <div class="form-container">
+        <h2>Delete Weapon (DELETE)</h2>
+        <form id="delete-weapon-form">
+            <input type="number" id="delete-id" placeholder="Weapon ID" required>
+            <button type="submit">Delete Weapon</button>
+        </form>
+    </div>
+</div>
+
+<button id="refresh-button">Refresh Inventory</button>
+
+<script>
+    // Function to display messages
+    function showMessage(message, isError = false) {
+        const messageBox = document.getElementById('message-box');
+        messageBox.className = isError ? 'error' : 'success';
+        messageBox.textContent = message;
+        setTimeout(() => {
+            messageBox.textContent = '';
+            messageBox.className = '';
+        }, 3000);
+    }
+
+    // Fetch weapons and display them
+    function fetchWeapons() {
+        fetch('/weapons')
+            .then(response => response.json())
+            .then(data => {
+                const weaponList = document.getElementById('weapon-list');
+                weaponList.innerHTML = '';
+                data.forEach(weapon => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = `ID: ${weapon.id}, Name: ${weapon.name}, Type: ${weapon.type}, Damage: ${weapon.damage}, Range: ${weapon.range}`;
+                    weaponList.appendChild(listItem);
+                });
+                showMessage("Inventory updated successfully");
+            })
+            .catch(error => {
+                console.error('Error fetching weapons:', error);
+                showMessage("Failed to fetch inventory", true);
+            });
+    }
+
+    document.getElementById('refresh-button').addEventListener('click', fetchWeapons);
+
+    // POST request (Add Weapon)
+    document.getElementById('add-weapon-form').addEventListener('submit', function(event) {
+        event.preventDefault();
+        const newWeapon = {
+            name: document.getElementById('name').value,
+            type: document.getElementById('type').value,
+            damage: document.getElementById('damage').value,
+            range: document.getElementById('range').value
+        };
+        fetch('/weapons', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newWeapon)
+        })
+        .then(fetchWeapons)
+        .then(() => showMessage("Weapon added successfully"))
+        .catch(error => showMessage("Failed to add weapon", true));
+    });
+
+    // PUT request (Update Weapon)
+    document.getElementById('update-weapon-form').addEventListener('submit', function(event) {
+        event.preventDefault();
+        const id = document.getElementById('update-id').value;
+        const updatedWeapon = {
+            name: document.getElementById('update-name').value,
+            type: document.getElementById('update-type').value,
+            damage: document.getElementById('update-damage').value,
+            range: document.getElementById('update-range').value
+        };
+        fetch(`/weapons/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updatedWeapon)
+        })
+        .then(fetchWeapons)
+        .then(() => showMessage("Weapon updated successfully"))
+        .catch(error => showMessage("Failed to update weapon", true));
+    });
+
+    // PATCH request (Partial Update Weapon)
+    document.getElementById('patch-weapon-form').addEventListener('submit', function(event) {
+        event.preventDefault();
+        const id = document.getElementById('patch-id').value;
+        let updatedFields = {};
+        const name = document.getElementById('patch-name').value;
+        const type = document.getElementById('patch-type').value;
+        const damage = document.getElementById('patch-damage').value;
+        const range = document.getElementById('patch-range').value;
+        if (name) updatedFields.name = name;
+        if (type) updatedFields.type = type;
+        if (damage) updatedFields.damage = damage;
+        if (range) updatedFields.range = range;
+
+        fetch(`/weapons/${id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updatedFields)
+        })
+        .then(fetchWeapons)
+        .then(() => showMessage("Weapon partially updated successfully"))
+        .catch(error => showMessage("Failed to patch weapon", true));
+    });
+
+    // DELETE request (Delete Weapon)
+    document.getElementById('delete-weapon-form').addEventListener('submit', function(event) {
+        event.preventDefault();
+        const id = document.getElementById('delete-id').value;
+        fetch(`/weapons/${id}`, {
+            method: 'DELETE'
+        })
+        .then(fetchWeapons)
+        .then(() => showMessage("Weapon deleted successfully"))
+        .catch(error => showMessage("Failed to delete weapon", true));
+    });
+
+    // Initial fetch of weapons
+    window.onload = fetchWeapons;
+</script>
+
+</body>
+</html>
