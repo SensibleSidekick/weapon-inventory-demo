@@ -22,10 +22,17 @@ public class WeaponController {
 
     @PostMapping
     public Weapon addWeapon(@RequestBody Weapon weapon) {
-        weapon.setId((long) (weaponInventory.size() + 1)); // Simple auto-increment ID
+        // Find the highest current ID and increment it by 1
+        long newId = weaponInventory.stream()
+                .mapToLong(Weapon::getId)
+                .max()
+                .orElse(0) + 1;
+
+        weapon.setId(newId); // Assign the new ID
         weaponInventory.add(weapon);
         return weapon;
     }
+
 
     // Full replacement via PUT
     @PutMapping("/{id}")
