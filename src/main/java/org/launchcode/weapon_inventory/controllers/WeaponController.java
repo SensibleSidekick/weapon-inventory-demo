@@ -15,6 +15,15 @@ public class WeaponController {
 
     private List<Weapon> weaponInventory = new ArrayList<>();
 
+    @GetMapping("/{id}")
+    public Weapon getWeaponById(@PathVariable Long id) {
+        return weaponInventory.stream()
+                .filter(weapon -> weapon.getId().equals(id))
+                .findFirst()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Weapon not found"));
+    }
+
+
     @GetMapping
     public List<Weapon> getAllWeapons() {
         return weaponInventory;
